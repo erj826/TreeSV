@@ -66,18 +66,42 @@ def get_credentials():
     return credentials
 
 
-def is_in_dir(file_name, items):
+def is_in_dir(service, file_name):  
+    """"Checks if desired_directory is in Drive and sets it as root node"""
     for item in items:
         if file_name == item['name']:
             global glbl_root
             glbl_root = item
             return True
     return False
+        
 
-def print_files(items):
-    print('Files:')
+def get_children(parentId, items):
+    """Returns the sub-files of a given folder"""
+    children = []  
     for item in items:
-        print('{0} ({1})'.format(item['name'], item['id']))
+        if(str([parentId]) == str(item.get('parents', [])) and item not in children):
+            children.append(item)   
+    return children
+
+def dftt(service, cur_node):
+    """Depth first tree traversal"""
+    ttr = ''
+    children_of_cur_node = get_children(cur_node['id'], items)
+    count = len(children_of_cur_node)
+    while(count > 0):
+        for child in children_of_cur_node:
+            if ((count != len(children_of_cur_node)) and cur_node['name'] != desired_directory):
+                ttr += desired_directory + ','
+            
+            count = len(children_of_cur_node)  
+            
+            ttr += cur_node['name'] + ',' + dftt(service, child)
+            count -= 1
+
+        return ttr
+
+    return cur_node['name'] + '\n'
 
 
 def main():
@@ -88,44 +112,43 @@ def main():
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('drive', 'v3', http=http)
     
+    global desired_directory
     desired_directory = raw_input("Please enter a directory name:")
-
-    results = service.files().list(
-            fields="nextPageToken, files(id, name, parents)").execute()
-    #potentially need pageSize=1000,
-
-    items = results.get('files', [])
-
-    if not items:
-        print('No files found.')      
-    else:
-        while(is_in_dir(desired_directory, items) == False):
-            print('Directory not found! Please try again!')
-            desired_directory = raw_input("Please enter a directory name:")
-     
-    output_file = open(desired_directory + '.csv', 'w+')
     
-    output_string = ''    
-   
-    for item in items:
-        #Checking 2nd tier files
-        if(str([glbl_root['id']]) == str(item.get('parents', []))):          
-            for item2 in items:
-                #Checking 3rd tier files
-                if(str([item['id']]) == str(item2.get('parents', []))):                  
-                    for item3 in items:
-                        #Checking 4th tier files
-                        if(str([item2['id']]) == str(item3.get('parents', []))):
-                            #Creating CSV string   
-                            output_string += (str(glbl_root['name']) + ',' +
-                                              str(item['name']) + ',' +
-                                                 str(item2['name']) + ',' +
-                                                    str(item3['name']) + '\n')
-                                               
-                                  
+    #Get All files in drive:
+    results = {}
+    global items
+    items= []
+    page_token = None
+
+    while True:
+        results = service.files().list(
+                    fields='nextPageToken, files(id, name, parents, mimeType)',
+                    pageToken=page_token).execute()  
+        
+        for file in results.get('files', []):
+            page_token = results.get('nextPageToken', None)
+            items += (results.get('files', []))
+            if page_token is None:
+                break;
+                
+        if page_token is None:
+            break;
+            
+    
+    if not items:
+        print('No files found.')
+        
+    while(is_in_dir(service, desired_directory) == False):
+        print('Directory not found!')
+        desired_directory = raw_input("Please enter a directory name:")
+            
+    output_file = open(desired_directory + '.csv', 'w+')  
+    
+    output_string = (dftt(service, glbl_root))
+
     output_file.write(output_string)
     output_file.close
     
-
 if __name__ == '__main__':
     main()
