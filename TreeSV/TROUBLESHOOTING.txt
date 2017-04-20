@@ -1,0 +1,56 @@
+For inquiries feel free to e-mail: erj826@bu.edu
+
+
+*************************************************************************************************
+
+If a package is missing:
+
+Try Googling the package name to find the syntax for updating or installing the specific package.
+
+ex. 
+pip install httplib2
+pip install apiclient
+pip install --upgrade google-api-python-client
+
+*************************************************************************************************
+
+If a command doesn’t work:
+
+Try Googling the exact syntax, I might have made a mistake.
+Make sure you are in the TreeSV folder.
+
+*************************************************************************************************
+
+If your file is not found, but you know it exists:
+
+Open up your web browser, sign out of Google, and retry running TreeSV.
+If that doesn’t work, make sure your spelling is correct. It is case sensitive.
+
+*************************************************************************************************
+
+Client secret missing?
+
+Double check that client_secret.json is in the same folder as TreeSV.
+
+*************************************************************************************************
+
+How long should it take?
+
+For directories with around 20 files, it should take less than 30 seconds.
+For larger directories with around 1000 files, it may take approximately 5 minutes.
+
+If the terminal says ‘Generating CSV’, then it IS working. Please be patient.
+If a file is not found, it should prompt you to enter a different file within a minute. 
+If the google drive has NO files, the program will end itself.
+
+*************************************************************************************************
+
+I no longer want anaconda taking up space on my computer, what do I do? (mac)
+In a terminal window type:
+
+conda install anaconda-clean
+anaconda-clean --yes
+rm -rf ~/anaconda2
+
+
+
